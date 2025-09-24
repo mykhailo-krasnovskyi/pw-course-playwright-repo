@@ -8,7 +8,7 @@ export class SignInForm extends BaseForm {
     public readonly emptyEmailMessage: Locator = this.page.getByText('Email required');
     public readonly emptyPasswordMessage: Locator = this.page.getByText('Password required');
     public readonly wrongEmailMessage: Locator = this.page.getByText('Email is incorrect');
-    public readonly wrongCredentialsMessage: Locator = this.page.getByText('Wrong email or password');;
+    public readonly wrongCredentialsMessage: Locator = this.page.getByText('Wrong email or password');
 
     async signInWithCredentials(email: string, password: string) {
         await this.enterEmail(email);
