@@ -1,51 +1,48 @@
-import test, { expect } from "@playwright/test";
-import { GaragePage } from "../pom/pages/GaragePage";
-import { HomePage } from "../pom/pages/HomePage";
-import { SignInForm } from "../pom/forms/SignInForm";
-import { AddCarForm } from "../pom/forms/AddCarForm";
+import { expect } from "@playwright/test";
+
+import { test } from "../utils/fixtures/pagesFixtures";
 
 test.describe('Garage tests', () => {
-    let garagePage: GaragePage;
-    let homePage: HomePage;
-    let signInForm: SignInForm;
-    let addCarForm: AddCarForm;
 
-    test.use({ storageState: '.states/auth.json' });
+    test.use({ storageState: '.states/testuser1.json' });
 
-    test.beforeEach(async ({ page }) => {
-        homePage = new HomePage(page);
-        signInForm = new SignInForm(page);
-        garagePage = new GaragePage(page);
-        addCarForm = new AddCarForm(page);
-
-        await garagePage.navigate();
-        await garagePage.openAddCarForm();
+    test.beforeEach(async ({ app }) => {
+        await app.garagePage.navigate();
+        await app.garagePage.openAddCarForm();
     })
 
-    test('Add new car - BMW X5', async () => {
-        await addCarForm.addNewCar('BMW', 'X5', '999');
-        await addCarForm.verifyCarIsAdded('BMW X5', '999');
+    test.describe('Adding cars', () => {
+        test('Add new car - BMW X5', async ({ app }) => {
+            await app.addCarForm.addNewCar('BMW', 'X5', '999');
+            await app.garagePage.verifyCarIsAdded('BMW X5', '999');
+        })
+
+        test('Add new car - Audi Q7', async ({ app }) => {
+            await app.addCarForm.addNewCar('Audi', 'Q7', '999');
+            await app.garagePage.verifyCarIsAdded('Audi Q7', '999');
+        })
+
+        test.afterEach(async ({ app }) => {
+            await app.garagePage.openEditCarForm(0);
+            await app.editCarForm.removeOpenCar();
+            await app.garagePage.verifyCarIsRemoved();
+        })
     })
 
-    test('Add new car - Audi Q7', async () => {
-        await addCarForm.addNewCar('Audi', 'Q7', '999');
-        await addCarForm.verifyCarIsAdded('Audi Q7', '999');
+    test('Add new car without mileage', async ({ app }) => {
+        await app.addCarForm.selectBrand('BMW');
+        await app.addCarForm.selectModel('X5');
+        await expect(app.addCarForm.addCarButton).toBeDisabled();
     })
 
-    test('Add new car without mileage', async () => {
-        await addCarForm.selectBrand('BMW');
-        await addCarForm.selectModel('X5');
-        await expect(addCarForm.addCarButton).toBeDisabled();
+    test('Close "Add a car" form via "Cancel" button', async ({ app }) => {
+        await app.addCarForm.clickCancelButton();
+        await expect(app.addCarForm.formTitle).not.toBeVisible();
     })
 
-    test('Close "Add a car" form via "Cancel" button', async () => {
-        await addCarForm.clickCancelButton();
-        await expect(addCarForm.formTitle).not.toBeVisible();
-    })
-
-    test('Close "Add a car" form via close icon', async () => {
-        await addCarForm.clickCloseIcon();
-        await expect(addCarForm.formTitle).not.toBeVisible();
+    test('Close "Add a car" form via close icon', async ({ app }) => {
+        await app.addCarForm.clickCloseIcon();
+        await expect(app.addCarForm.formTitle).not.toBeVisible();
     })
 
 })
