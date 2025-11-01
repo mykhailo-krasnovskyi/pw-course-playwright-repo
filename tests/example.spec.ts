@@ -58,5 +58,10 @@ test.describe('Example tests 2', () => {
     // Expects page to have a heading with the name of Installation.
     await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
   });
+
+  test.only('Get env variable', async () => {
+    console.log('Env variable:')
+    console.log(process.env.VARIABLE_NAME);
+  })
 })
 

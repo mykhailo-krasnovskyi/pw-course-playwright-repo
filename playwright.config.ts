@@ -1,5 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
-
+require('dotenv').config();
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -29,8 +29,8 @@ export default defineConfig({
     baseURL: 'https://qauto.forstudy.space/',
 
     httpCredentials: {
-      username: 'guest',
-      password: 'welcome2qauto',
+      username: process.env.HTTP_USERNAME!,
+      password: process.env.HTTP_PASSWORD!,
     },
     testIdAttribute: 'qa-id',
 
@@ -49,7 +49,7 @@ export default defineConfig({
     {
       name: 'e2e',
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'],
+      // dependencies: ['setup'],
 
     },
 
