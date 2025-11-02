@@ -49,7 +49,7 @@ export default defineConfig({
     {
       name: 'e2e',
       use: { ...devices['Desktop Chrome'] },
-      // dependencies: ['setup'],
+      dependencies: ['setup'],
 
     },
 
