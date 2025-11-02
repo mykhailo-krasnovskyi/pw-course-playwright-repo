@@ -11,7 +11,6 @@ export class AddCarForm extends BaseForm {
     private readonly cancelButton = this.page.getByRole('button', { name: 'Cancel' });
     private readonly closeIcon = this.page.locator('button[aria-label="Close"]');
 
-
     async addNewCar(brand: string, model: string, mileage: string) {
         await this.selectBrand(brand);
         await this.page.waitForTimeout(500);
