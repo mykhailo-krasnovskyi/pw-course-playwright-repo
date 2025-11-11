@@ -18,8 +18,12 @@ test.describe('Garage tests', () => {
         })
 
         test('Add new car - Audi Q7', async ({ app }) => {
-            await app.addCarForm.addNewCar('Audi', 'Q7', '999');
-            await app.garagePage.verifyCarIsAdded('Audi Q7', '999');
+            await app.addCarForm.addNewCar('Audi', 'Q7', '555');
+            await app.garagePage.verifyCarIsAdded('Audi Q7', '555');
+            // await expect(app.page.locator('.car-item').first()).toHaveScreenshot('last-added-car-audi-q7.png', { mask: [app.page.locator('[name="miles"]')] });
+            // await expect(app.page.locator('.car-item').first()).toHaveScreenshot('last-added-car-audi-q7.png', { maxDiffPixelRatio: 0.02 });
+
+            await app.page.locator('.car-item').first().screenshot({ path: 'audi-q7.png' });
         })
 
         test.afterEach(async ({ app }) => {
