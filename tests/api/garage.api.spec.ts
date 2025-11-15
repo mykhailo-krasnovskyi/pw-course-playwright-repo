@@ -105,6 +105,8 @@ test.describe('Private requests', () => {
 
 
     test.describe('Adding new cars', () => {
+        let addedCarsToRemove: number[] = [];
+
         test('Add new car - Ford Fiesta', async ({ request }) => {
             const newCar = {
                 'carBrandId': 3,
@@ -127,6 +129,8 @@ test.describe('Private requests', () => {
             expect(addedCar.carModelId).toBe(newCar.carModelId);
             expect(addedCar.initialMileage).toBe(newCar.mileage);
             expect(addedCar.id).toBeDefined();
+            
+            addedCarsToRemove.push(addedCar.id);
         })
 
         test('Add new car - Audi TT', async ({ request }) => {
@@ -151,6 +155,20 @@ test.describe('Private requests', () => {
             expect(addedCar.carModelId).toBe(newCar.carModelId);
             expect(addedCar.initialMileage).toBe(newCar.mileage);
             expect(addedCar.id).toBeDefined();
+
+            addedCarsToRemove.push(addedCar.id);
+        })
+
+        test.afterAll(async ({ request }) => {
+            for (const id of addedCarsToRemove) {
+                const response = await request.delete(`/api/cars/${id}`, {
+                    headers: {
+                        'cookie': sid
+                    }
+                });
+
+                expect(response.status()).toBe(200);
+            }
         })
     })
 })
