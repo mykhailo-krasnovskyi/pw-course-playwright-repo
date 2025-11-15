@@ -26,7 +26,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 
   snapshotDir: './test-data/screenshots',
-  
+
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'https://qauto.forstudy.space/',
@@ -47,13 +47,25 @@ export default defineConfig({
   projects: [
     {
       name: 'setup',
-      testMatch: '**/setup/**.setup.ts'
+      testMatch: '**/setup/**.setup.ts',
+      workers: 1
     },
     {
       name: 'e2e',
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
-
+      testMatch: '/tests/**.spec.ts'
+    },
+    {
+      name: 'api',
+      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+      testMatch: '/tests/api/**.spec.ts'
+    },
+    {
+      name: 'practice',
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: '/tests/practice/**.spec.ts'
     },
 
     // {

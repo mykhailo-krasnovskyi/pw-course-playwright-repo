@@ -1,6 +1,9 @@
 import { expect } from "@playwright/test";
-
 import { test } from "../utils/fixtures/pagesFixtures";
+
+import GarageService from "../utils/api/services/GarageService";
+import { getSidFromStorageState } from "../utils/storageState/storageState";
+let garageService: GarageService;
 
 test.describe('Garage tests', () => {
 
@@ -26,10 +29,12 @@ test.describe('Garage tests', () => {
             await app.page.locator('.car-item').first().screenshot({ path: 'audi-q7.png' });
         })
 
-        test.afterEach(async ({ app }) => {
-            await app.garagePage.openEditCarForm(0);
-            await app.editCarForm.removeOpenCar();
-            await app.garagePage.verifyCarIsRemoved();
+        test.afterEach(async ({ request }) => {
+            garageService = new GarageService(request);
+            const sid = getSidFromStorageState('.states/testuser1.json');
+            const allAddedCars = await garageService.getUserCars(sid);
+            const lastAddedCarId = allAddedCars.data[0].id;
+            await garageService.removeCar(sid, lastAddedCarId);
         })
     })
 
