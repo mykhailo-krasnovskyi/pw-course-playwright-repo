@@ -1,35 +1,39 @@
 import test, { expect } from "@playwright/test";
 import { testUser1 } from "../../test-data/validUsers";
+import GarageService from "../../utils/api/services/GarageService";
+import AuthService from "../../utils/api/services/AuthService";
+import { generateNewCar } from "../../utils/api/factories/cars.factory";
+
+let garageService: GarageService;
+let authService: AuthService;
+
+test.beforeEach(({ request }) => {
+    garageService = new GarageService(request);
+    authService = new AuthService(request);
+})
 
 test.describe('Get brands and models', () => {
-    test('Get all brands', async ({ request }) => {
-        const response = await request.get('/api/cars/brands');
-        const responseJson = await response.json();
-        const brands = responseJson.data;
-        expect(response.status()).toBe(200);
+    test('Get all brands', async () => {
+        const brands = await garageService.getAllBrands();
+
         expect(brands).toHaveLength(5);
     })
 
-    test('Get all models', async ({ request }) => {
-        const response = await request.get('/api/cars/models');
-        const responseJson = await response.json();
-        const models = responseJson.data;
+    test('Get all models', async () => {
+        const models = await garageService.getAllModels();
 
-        expect(response.status()).toBe(200);
         expect(models).toHaveLength(23);
     })
 
-    test('Get model by id', async ({ request }) => {
-        const response = await request.get('/api/cars/models/2');
-        const responseJson = await response.json();
-        const model = responseJson.data;
+    test('Get model by id', async () => {
+        const model = await garageService.getModel(2);
 
         expect(model.carBrandId).toBe(1);
         expect(model.title).toBe('R8');
     })
 
-    test('Get model by invalid id', async ({ request }) => {
-        const response = await request.get('/api/cars/models/77');
+    test('Get model by invalid id', async () => {
+        const response = await garageService.getModel(53525, false);
         const responseJson = await response.json();
 
         expect(response.status()).toBe(404);
@@ -41,17 +45,9 @@ test.describe('Private requests', () => {
     let sid: string;
 
     test.beforeAll(async ({ request }) => {
-        const responseAuth = await request.post('api/auth/signin', {
-            data: {
-                'email': testUser1.email,
-                'password': testUser1.password,
-            }
-        });
+        authService = new AuthService(request);
 
-        sid = responseAuth.headers()['set-cookie'].split(';')[0];
-
-        expect(responseAuth.status()).toBe(200);
-        expect(sid).toContain('sid=');
+        sid = await authService.getAuthCookie(testUser1.email, testUser1.password);
     })
 
     test.describe('Removing cars', () => {
@@ -59,42 +55,23 @@ test.describe('Private requests', () => {
         let carToRemoveId: string;
 
         test.beforeAll(async ({ request }) => {
-            const newCar = {
-                'carBrandId': 1,
-                'carModelId': 1,
-                'mileage': 123
-            }
+            garageService = new GarageService(request);
 
-            const response = await request.post('/api/cars/', {
-                data: newCar,
-                headers: {
-                    'cookie': sid
-                }
-            });
+            const newCar = generateNewCar(1, 1, 123);
 
-            const responseJson = await response.json();
-            const addedCar = responseJson.data;
+            const addedCar = await garageService.addCar(sid, newCar.carBrandId, newCar.carModelId, newCar.mileage);
             carToRemoveId = addedCar.id;
-
-            expect(response.status()).toBe(201);
         })
 
-        test('Remove a car', async ({ request }) => {
-            const response = await request.delete(`/api/cars/${carToRemoveId}`, {
-                headers: {
-                    'cookie': sid
-                }
-            });
+        test('Remove a car', async () => {
+            const response = await garageService.removeCar(sid, carToRemoveId);
 
             expect(response.status()).toBe(200);
         })
 
-        test('Remove a car with invalid id', async ({ request }) => {
-            const response = await request.delete(`/api/cars/529532535353`, {
-                headers: {
-                    'cookie': sid
-                }
-            });
+        test('Remove a car with invalid id', async () => {
+            const response = await garageService.removeCar(sid, '5325325325', true);
+
             const responseJson = await response.json();
 
             expect(response.status()).toBe(404);
@@ -105,52 +82,26 @@ test.describe('Private requests', () => {
 
 
     test.describe('Adding new cars', () => {
-        let addedCarsToRemove: number[] = [];
+        let addedCarsToRemove: string[] = [];
 
-        test('Add new car - Ford Fiesta', async ({ request }) => {
-            const newCar = {
-                'carBrandId': 3,
-                'carModelId': 11,
-                'mileage': 123
-            }
+        test('Add new car - Ford Fiesta', async () => {
+            const newCar = generateNewCar(3, 11, 123);
+            const addedCar = await garageService.addCar(sid, newCar.carBrandId, newCar.carModelId, newCar.mileage);
 
-            const response = await request.post('/api/cars/', {
-                data: newCar,
-                headers: {
-                    'cookie': sid
-                }
-            });
-
-            const responseJson = await response.json();
-            const addedCar = responseJson.data;
-
-            expect(response.status()).toBe(201);
             expect(addedCar.carBrandId).toBe(newCar.carBrandId);
             expect(addedCar.carModelId).toBe(newCar.carModelId);
             expect(addedCar.initialMileage).toBe(newCar.mileage);
             expect(addedCar.id).toBeDefined();
-            
+
             addedCarsToRemove.push(addedCar.id);
         })
 
-        test('Add new car - Audi TT', async ({ request }) => {
-            const newCar = {
-                'carBrandId': 1,
-                'carModelId': 1,
-                'mileage': 123
-            }
+        test('Add new car - Audi TT', async () => {
+            const newCar = generateNewCar(1, 1, 123);
 
-            const response = await request.post('/api/cars/', {
-                data: newCar,
-                headers: {
-                    'cookie': sid
-                }
-            });
 
-            const responseJson = await response.json();
-            const addedCar = responseJson.data;
+            const addedCar = await garageService.addCar(sid, newCar.carBrandId, newCar.carModelId, newCar.mileage);
 
-            expect(response.status()).toBe(201);
             expect(addedCar.carBrandId).toBe(newCar.carBrandId);
             expect(addedCar.carModelId).toBe(newCar.carModelId);
             expect(addedCar.initialMileage).toBe(newCar.mileage);
@@ -160,14 +111,10 @@ test.describe('Private requests', () => {
         })
 
         test.afterAll(async ({ request }) => {
-            for (const id of addedCarsToRemove) {
-                const response = await request.delete(`/api/cars/${id}`, {
-                    headers: {
-                        'cookie': sid
-                    }
-                });
+            const garageService = new GarageService(request);
 
-                expect(response.status()).toBe(200);
+            for (const id of addedCarsToRemove) {
+                await garageService.removeCar(sid, id);
             }
         })
     })
