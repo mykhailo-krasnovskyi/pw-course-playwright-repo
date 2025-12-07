@@ -26,7 +26,7 @@ test.describe('Garage tests', () => {
             // await expect(app.page.locator('.car-item').first()).toHaveScreenshot('last-added-car-audi-q7.png', { mask: [app.page.locator('[name="miles"]')] });
             // await expect(app.page.locator('.car-item').first()).toHaveScreenshot('last-added-car-audi-q7.png', { maxDiffPixelRatio: 0.02 });
 
-            await app.page.locator('.car-item').first().screenshot({ path: 'audi-q7.png' });
+            // await app.page.locator('.car-item').first().screenshot({ path: 'audi-q7.png' });
         })
 
         test.afterEach(async ({ request }) => {
